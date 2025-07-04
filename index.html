@@ -2,17 +2,94 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>シンプルAIチャットボット</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI対話チャット</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      max-width: 600px;
+    }
+    #chat-area {
+      border: 1px solid #ccc;
+      height: 400px;
+      padding: 10px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      background: #f9f9f9;
+    }
+    #chat-area p {
+      margin: 5px 0;
+    }
+    .user {
+      color: blue;
+      text-align: right;
+    }
+    .bot {
+      color: green;
+      text-align: left;
+    }
+    #chat-input {
+      width: 80%;
+      padding: 8px;
+      font-size: 16px;
+    }
+    #send-btn {
+      width: 18%;
+      padding: 8px;
+      font-size: 16px;
+      margin-left: 2%;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <div id="chat-container">
-    <div id="messages"></div>
-    <div id="input-area">
-      <input type="text" id="user-input" placeholder="メッセージを入力..." />
-      <button id="send-button">送信</button>
-    </div>
-  </div>
-  <script src="app.js"></script>
+  <h1>AI対話チャット</h1>
+
+  <div id="chat-area"></div>
+
+  <input type="text" id="chat-input" placeholder="メッセージを入力" />
+  <button id="send-btn">送信</button>
+
+  <script>
+    async function sendMessageToServer(userMessage) {
+      const res = await fetch('https://apikeytaiwa.vercel.app/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage }),
+      });
+      if (!res.ok) {
+        return 'エラーが発生しました。';
+      }
+      const data = await res.json();
+      return data.reply;
+    }
+
+    function addMessage(text, className) {
+      const chatArea = document.getElementById('chat-area');
+      const p = document.createElement('p');
+      p.textContent = text;
+      p.className = className;
+      chatArea.appendChild(p);
+      chatArea.scrollTop = chatArea.scrollHeight; // 最新メッセージにスクロール
+    }
+
+    document.getElementById('send-btn').addEventListener('click', async () => {
+      const input = document.getElementById('chat-input');
+      const userText = input.value.trim();
+      if (!userText) return;
+      addMessage('あなた: ' + userText, 'user');
+      input.value = '';
+      const botReply = await sendMessageToServer(userText);
+      addMessage('Bot: ' + botReply, 'bot');
+    });
+
+    // Enterキーでも送信できるように
+    document.getElementById('chat-input').addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('send-btn').click();
+      }
+    });
+  </script>
 </body>
 </html>
